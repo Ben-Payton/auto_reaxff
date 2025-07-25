@@ -1,0 +1,80 @@
+# Initialization
+units           real
+dimension       3
+boundary        p p p
+atom_style      full
+read_data       {data_file}
+
+# reaxff potential information
+
+pair_style      reaxff lmp_control_lg checkqeq no
+pair_coeff      * *  Fedkin.reax.txt  H O
+
+fix             1 all reaxff/species 1 100 100 species.out element H O position 1000 OH.pos
+fix				2 all reaxff/bonds 1000 bonds.reaxff
+#fix            charge all qeq/reaxff 1 0.0 10.0 1.0e-6 reaxff
+velocity all create 0.1 1234
+neighbor 2.0 bin
+neigh_modify every 1 delay 0 check yes
+
+minimize 1.0e-4 1.0e-6 1000 10000
+min_style cg
+
+#fix 4 all box/relax aniso 1 vmax 0.01
+#minimize 1.0e-4 1.0e-6 1000 10000
+#unfix 4
+
+#fix 4 all box/relax aniso 1 vmax 0.01
+#minimize 1.0e-4 1.0e-6 1000 10000
+#unfix 4
+
+#fix 4 all box/relax aniso 1 vmax 0.01
+#minimize 1.0e-4 1.0e-6 1000 10000
+#unfix 4
+
+# Prereaxff switch (NVT dynamics at 0.5 - 300  and 1 atm)
+
+fix             3 all nvt temp 0.1 0.1 100
+thermo_style    custom step temp pe press vol density
+thermo          100
+timestep        0.1
+#reset_timestep  0
+dump MyData all xyz 1000 dump.xyz
+run             20000
+unfix           3
+undump MyData
+write_restart   restart.Water15.in.reax1
+write_data      reax.dat
+
+fix             3 all nvt temp 0.1 300 100
+thermo_style    custom step temp pe press vol density
+thermo          100
+timestep        0.1
+dump MyData all xyz 1000 dump.xyz
+run             20000
+unfix           3
+undump MyData
+write_restart   restart.Water15.in.reax2
+write_data      reax2.dat
+
+fix             3 all nvt temp 300 300 100
+thermo_style    custom step temp pe press vol density
+thermo          100
+timestep        0.1
+dump MyData all xyz 1000 dump.xyz
+run             10000
+unfix           3
+undump MyData
+write_restart   restart.Water15.in.reax2
+write_data      reax2.dat
+
+fix             3 all npt temp 300 300 100 iso 1 1 100
+thermo_style    custom step temp pe press vol density
+thermo          100
+timestep        0.1
+dump MyData all xyz 1000 dump.xyz
+run             50000
+unfix           3
+undump MyData
+write_restart   restart.Water15.in.reax3
+write_data      reax3.dat

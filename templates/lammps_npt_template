@@ -1,0 +1,10 @@
+fix             3 all npt temp 300 300 100 iso 1 1 100
+thermo_style    custom step temp pe press vol density
+thermo          100
+timestep        0.1
+dump MyData all xyz 1000 dump.xyz
+run             50000
+unfix           3
+undump MyData
+write_restart   restart.Water15.in.reax3
+write_data      reax3.dat
